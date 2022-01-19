@@ -1,0 +1,999 @@
+openapi: 3.0.3
+info:
+  title: Marketplace App
+  description: Simplified marketplace API.
+  termsOfService: https://github.com/alta-sirclo-be-bagusbpg/W5-d4-rest-api-layered-with-testing
+  contact:
+    name: Bagus Brahmantya
+    url: https://github.com/bagusbpg
+    email: bagusbpg@gmail.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.1.0
+servers:
+  - url: https://github.com/bagusbpg/alta-sirclo/{environment}
+    description: Various server url(s).
+    variables:
+      environment:
+        enum:
+          - 'development'
+          - 'production'
+          - 'qa'
+        default: 'production'
+paths:
+  /login:
+    post:
+      tags:
+        - "Authentication"
+      summary: Sends user credentials.
+      operationId: Login
+      description: User must login to gain certain authorization.
+      requestBody:
+        description: The required fields to fill to get authentication.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                name:
+                  type: string
+                password:
+                  type: string
+              required:
+                - "name"
+                - "password"
+            example:
+              name: user1
+              password : 74nSA&ge%#fwJ
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: login success
+                data: aValidToken
+        '400':
+          description: Login failed (binding)
+          content:
+            application/json:
+              example:
+                code: 400
+                message: binding failed
+                data:
+        '401':
+          description: Login failed (user does not exist or password incorrect)
+          content:
+            application/json:
+              examples:
+                userNotExist:
+                  value:
+                    code: 401
+                    message: user does not exist
+                    data:
+                passwordIncorrect:
+                  value:
+                    code: 401
+                    message: password incorrect
+                    data:
+        '500':
+          description: Login failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get user failed
+                data:
+  /users:
+    get:
+      tags:
+        - "Users"
+      security:
+        - JWTAuth: []
+      summary: Show all registered users.
+      operationId: getAllUsers
+      description: Show all registered active users.
+      responses:
+        '200':
+          description: Get all users success
+          content:
+            application/json:
+              examples:
+                nonEmpty:
+                  value:
+                    code: 200
+                    message: get all users success
+                    data:
+                    - id: 1
+                      name: user1
+                      email: email1@mail.com
+                    - id: 2
+                      name: user2
+                      email: email2@mail.com
+                empty:
+                  value:
+                    code: 200
+                    message: users directory empty
+                    data:
+        '401':
+          description: Get all users failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Get all users failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get all users failed
+                data:
+    post:
+      tags:
+        - "Users"
+      summary: Register a new user.
+      operationId: createUser
+      description: Anyone must register to get authorization on some features.
+      requestBody:
+        description: The required fields for registration.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - "name"
+                - "email"
+                - "password"
+              example:
+                name: user1
+                email1: email1@mail.com
+                password: 74nSA&ge%#fwJ
+
+      responses:
+        '200':
+          description: Register a user success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: create user success
+                data:
+                - id: 1
+                  name: user1
+                  email: email1@mail.com
+                  password: 74nSA&ge%#fwJ
+        '400':
+          description: Register a user failed (binding)
+          content:
+            application/json:
+              example:
+                code: 400
+                message: binding failed
+                data:
+        '500':
+          description: Register a user failed (server)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: create user failed
+                data:
+  /users/{id}:
+    get:
+      tags:
+        - "Users"
+      security:
+        - JWTAuth: []
+      summary: Show registered user by id.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the user to get
+      operationId: getUser
+      description: Show registered active user by id.
+      responses:
+        '200':
+          description: Show user by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: get user success
+                data:
+                - id : 1
+                  name: user1
+                  email: email1@mail.com
+        '400':
+          description: Show user by id failed (invalid id or user does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid user id
+                    data:
+                userNotExist:
+                  value:
+                    code: 400
+                    message: user does not exist
+                    data:
+        '401':
+          description: Show user by id failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Show user by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get user failed
+                data:
+    put:
+      tags:
+        - "Users"
+      security:
+        - JWTAuth: []
+      summary: Update registered user by id.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the user to update
+      operationId: updateUser
+      description: Update registered active user by id.
+      requestBody:
+        description: The required fields for updating user profile.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              example:
+                name: user1
+                email1: email1@mail.com
+                password: 74nSA&ge%#fwJ
+      responses:
+        '200':
+          description: Update user by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: update user success
+                data:
+                - id: 1
+                  name: user1
+                  email: email1@mail.com
+                  password: 74nSA&ge%#fwJ
+        '400':
+          description: Update user by id failed (invalid id, binding, or user does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid user id
+                    data:
+                binding:
+                  value:
+                    code: 400
+                    message: binding failed
+                    data:
+                userNotExist:
+                  value:
+                    code: 400
+                    message: user does not exist
+                    data:
+        '401':
+          description: Update user by id failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Update user by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: update user failed
+                data:
+    delete:
+      tags:
+        - "Users"
+      security:
+        - JWTAuth: []
+      summary: Delete registered user by id.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the user to delete
+      operationId: deleteUser
+      description: Delete registered active user by id.
+      responses:
+        '200':
+          description: Delete user by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: delete user success
+                data:
+        '400':
+          description: Delete user by id fail (invalid id or user does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid user id
+                    data:
+                userNotExist:
+                  value:
+                    code: 400
+                    message: user does not exist
+                    data:
+        '401':
+          description: Delete user by id failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Delete user by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: delete user failed
+                data:
+  /products:
+    get:
+      tags:
+        - "Products"
+      summary: Show all registered products.
+      operationId: getAllProducts
+      description: Anyone can view all registered products.
+      responses:
+        '200':
+          description: Get all products success
+          content:
+            application/json:
+              examples:
+                nonEmpty:
+                  value:
+                    code: 200
+                    message: get all products success
+                    data:
+                    - id: 1
+                      merchant: merchant1
+                      name: product1
+                      price: 100
+                    - id: 2
+                      merchant: merchant2
+                      name: product2
+                      price: 100
+                empty:
+                  value:
+                    code: 200
+                    message: products directory empty
+                    data:
+        '500':
+          description: Get all products failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get all products failed
+                data:
+    post:
+      tags:
+        - "Products"
+      security:
+        - JWTAuth: []      
+      summary: Register new product.
+      operationId: createProduct
+      description: Any valid user can register his/her products.
+      requestBody:
+        description: The required fields for registering a product.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                name:
+                  type: string
+                price:
+                  type: integer
+              required:
+                - "name"
+                - "price"
+              example:
+                name: product1
+                price: 100
+      responses:
+        '200':
+          description: Create product success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: create product success
+                data:
+                - id: 1
+                  merchant: user1
+                  name: product1
+                  price: 100
+        '400':
+          description: Create product failed (binding)
+          content:
+            application/json:
+              example:
+                code: 400
+                message: binding failed
+                data:
+        '401':
+          description: Create product failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Create product failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: create product failed
+                data:
+  /products/{id}:
+    get:
+      tags:
+        - "Products"
+      summary: Show registered product by id.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the product to get
+      operationId: getProduct
+      description: Anyone can view any registered product.
+      responses:
+        '200':
+          description: Get product by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: get product success
+                data:
+                - id: 1
+                  merchant: merchant1
+                  name: product1
+                  price: 100
+        '400':
+          description: Get product by id failed (invalid id or product does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid product id
+                    data:
+                productNotExist:
+                  value:
+                    code: 400
+                    message: product does not exist
+                    data:
+        '500':
+          description: Get product by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get product failed
+                data:
+    put:
+      tags:
+        - "Products"
+      security:
+        - JWTAuth: []      
+      summary: Update registered product.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the product to update
+      operationId: updateProduct
+      description: Any valid user can update his/her products.
+      requestBody:
+        description: The required fields for updating product.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                name:
+                  type: string
+                price:
+                  type: integer
+              required:
+                - "name"
+                - "price"
+              example:
+                name: product1
+                price: 100
+      responses:
+        '200':
+          description: Update product by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: update product success
+                data:
+                - id: 1
+                  merchant: user1
+                  name: product1
+                  price: 100
+        '400':
+          description: Update product by id failed (invalid id, binding, or product does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid product id
+                    data:
+                binding:
+                  value:
+                    code: 400
+                    message: binding failed
+                    data:
+                productNotExist:
+                  value:
+                    code: 400
+                    message: product does not exist
+                    data:
+        '401':
+          description: Update product by id failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Update product by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: update product failed
+                data:
+    delete:
+      tags:
+        - "Products"
+      security:
+        - JWTAuth: []      
+      summary: Delete registered product.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the product to delete
+      operationId: deleteProduct
+      description: Any valid user can delete his/her products.
+      responses:
+        '200':
+          description: Delete product by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: delete product success
+                data:
+        '400':
+          description: Delete product by id failed (invalid id or product does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid product id
+                    data:
+                productNotExist:
+                  value:
+                    code: 400
+                    message: product does not exist
+                    data:
+        '500':
+          description: Delete product by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: delete product failed
+                data:
+  /books:
+    get:
+      tags:
+        - "Books"
+      summary: Show all registered books.
+      operationId: getAllBooks
+      description: Anyone can view all registered books.
+      responses:
+        '200':
+          description: Get all books success
+          content:
+            application/json:
+              examples:
+                nonEmpty:
+                  value:
+                    code: 200
+                    message: get all books success
+                    data:
+                    - id: 1
+                      title: "title1"
+                      author: "author1"
+                      publisher: "publisher1"
+                      language: "language1"
+                      pages: 100
+                      isbn13: "isbn1"
+                    - id: 2
+                      title: "title2"
+                      author: "author2"
+                      publisher: "publisher2"
+                      language: "language2"
+                      pages: 100
+                      isbn13: "isbn2"
+                empty:
+                  value:
+                    code: 200
+                    message: books directory empty
+                    data:
+        '500':
+          description: Get all books failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get all books failed
+                data:
+    post:
+      tags:
+        - "Books"
+      security:
+        - JWTAuth: []      
+      summary: Register new book.
+      operationId: createBook
+      description: Any valid user can register a book.
+      requestBody:
+        description: The required fields for registering a book.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                title:
+                  type: string
+                author:
+                  type: string
+                publisher:
+                  type: string
+                language:
+                  type: string
+                pages:
+                  type: integer
+                isbn13:
+                  type: string
+              required:
+                - "title"
+                - "author"
+                - "publisher"
+              example:
+                title: title1
+                author: author1
+                publisher: publisher1
+                language: language1
+                pages: 100
+                isbn13: isbn1
+      responses:
+        '200':
+          description: Create book success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: create book success
+                data:
+                - id: 1
+                  title: "title1"
+                  author: "author1"
+                  publisher: "publisher1"
+                  language: "language1"
+                  pages: 100
+                  isbn13: "isbn1"
+        '400':
+          description: Create book failed (binding)
+          content:
+            application/json:
+              example:
+                code: 400
+                message: binding failed
+                data:
+        '401':
+          description: Create book failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Create book failed (server eror)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: create book failed
+                data:
+  /books/{id}:
+    get:
+      tags:
+        - "Books"
+      summary: show registered book by id.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the book to get
+      operationId: getBook
+      description: Anyone can view a book.
+      responses:
+        '200':
+          description: Get book by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: get book success
+                data:
+                - id: 1
+                  title: "title1"
+                  author: "author1"
+                  publisher: "publisher1"
+                  language: "language1"
+                  pages: 100
+                  isbn13: "isbn1"
+        '400':
+          description: Get book by id failed (invalid id or book does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid id
+                    data:
+                bookNotExist:
+                  value:
+                    code: 400
+                    message: book does not exist
+                    data:
+        '500':
+          description: Get book by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: get book failed
+                data:
+    put:
+      tags:
+        - "Books"
+      security:
+        - JWTAuth: []      
+      summary: Update registered book.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the book to update
+      operationId: updateBook
+      description: Any valid user can update a book.
+      requestBody:
+        description: The required fields for registering a book.
+        required: true
+        content:
+          'application/json':
+            schema:
+              properties:
+                title:
+                  type: string
+                author:
+                  type: string
+                publisher:
+                  type: string
+                language:
+                  type: string
+                pages:
+                  type: integer
+                isbn13:
+                  type: string
+              example:
+                title: title1
+                author: author1
+                publisher: publisher1
+                language: language1
+                pages: 100
+                isbn13: isbn1
+      responses:
+        '200':
+          description: Update book by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: update book success
+                data:
+                - id: 1
+                  title: "title1"
+                  author: "author1"
+                  publisher: "publisher1"
+                  language: "language1"
+                  pages: 100
+                  isbn13: "isbn1"
+        '400':
+          description: Update book by id failed (invalid id, binding, or book does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid id
+                    data:
+                binding:
+                  value:
+                    code: 400
+                    message: binding failed
+                    data:
+                bookNotExist:
+                  value:
+                    code: 400
+                    message: book does not exist
+                    data:
+        '401':
+          description: Update book by id failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Update book by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: update book failed
+                data:
+    delete:
+      tags:
+        - "Books"
+      security:
+        - JWTAuth: []      
+      summary: Delete registered book.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: numeric id of the book to delete
+      operationId: deleteBook
+      description: Any valid user can delete a book.
+      responses:
+        '200':
+          description: Delete book by id success
+          content:
+            application/json:
+              example:
+                code: 200
+                message: delete book success
+                data:
+        '400':
+          description: Delete book by id failed (invalid id or book does not exist)
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    code: 400
+                    message: invalid book id
+                    data:
+                bookNotExist:
+                  value:
+                    code: 400
+                    message: book does not exist
+                    data:
+        '401':
+          description: Delete book by id failed (unauthorized)
+          content:
+            application/json:
+              example:
+                code: 401
+                message: unauthorized
+                data:
+        '500':
+          description: Delete book by id failed (server error)
+          content:
+            application/json:
+              example:
+                code: 500
+                message: delete book failed
+                data:
+components:
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+externalDocs:
+  description: Find more info here
+  url: https://github.com/alta-sirclo-be-bagusbpg/W5-d4-rest-api-layered-with-testing
